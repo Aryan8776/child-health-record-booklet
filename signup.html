@@ -1,39 +1,4 @@
-<?php
-session_start();
-include "db.php";
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-   
-    if (!empty($_POST['username']) && !empty($_POST['email']) && !empty($_POST['password'])) {
-        $username = trim($_POST['username']);
-        $email = trim($_POST['email']);
-        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-
-       
-        $checkEmail = $conn->prepare("SELECT id FROM user_system WHERE email = ?");
-        $checkEmail->bind_param("s", $email);
-        $checkEmail->execute();
-        $checkEmail->store_result();
-
-        if ($checkEmail->num_rows > 0) {
-            echo "<script>alert('Email already registered');</script>";
-        } else {
-            $stmt = $conn->prepare("INSERT INTO user_system (username, email, password) VALUES (?, ?, ?)");
-            $stmt->bind_param("sss", $username, $email, $password);
-
-            if ($stmt->execute()) {
-                echo "<script>alert('Registration Successful!'); window.location='login.php';</script>";
-            } else {
-                echo "<script>alert('Error registering user');</script>";
-            }
-            $stmt->close();
-        }
-        $checkEmail->close();
-    } else {
-        echo "<script>alert('Please fill all fields.');</script>";
-    }
-}
-?>
 
 
 <!DOCTYPE html>
@@ -652,4 +617,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     });
   </script>
 </body>
+
 </html>
