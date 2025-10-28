@@ -1,0 +1,655 @@
+<?php
+session_start();
+include "db.php";
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+   
+    if (!empty($_POST['username']) && !empty($_POST['email']) && !empty($_POST['password'])) {
+        $username = trim($_POST['username']);
+        $email = trim($_POST['email']);
+        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+
+       
+        $checkEmail = $conn->prepare("SELECT id FROM user_system WHERE email = ?");
+        $checkEmail->bind_param("s", $email);
+        $checkEmail->execute();
+        $checkEmail->store_result();
+
+        if ($checkEmail->num_rows > 0) {
+            echo "<script>alert('Email already registered');</script>";
+        } else {
+            $stmt = $conn->prepare("INSERT INTO user_system (username, email, password) VALUES (?, ?, ?)");
+            $stmt->bind_param("sss", $username, $email, $password);
+
+            if ($stmt->execute()) {
+                echo "<script>alert('Registration Successful!'); window.location='login.php';</script>";
+            } else {
+                echo "<script>alert('Error registering user');</script>";
+            }
+            $stmt->close();
+        }
+        $checkEmail->close();
+    } else {
+        echo "<script>alert('Please fill all fields.');</script>";
+    }
+}
+?>
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Pastel Dreams</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: #f0e6f7;
+            position: relative;
+            overflow-x: hidden;
+            animation: gradientShift 8s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { 
+                background: #f0e6f7;
+            }
+            25% { 
+                background: #e6f0f7;
+            }
+            50% { 
+                background: #f7f0e6;
+            }
+            75% { 
+                background: #e6f7f0;
+            }
+        }
+
+        /* Animated background texture */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(255, 182, 193, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 80% 70%, rgba(173, 216, 230, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 60% 20%, rgba(221, 160, 221, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 40% 80%, rgba(255, 228, 196, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 90% 40%, rgba(144, 238, 144, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 10% 90%, rgba(255, 192, 203, 0.1) 0%, transparent 50%);
+            background-size: 400px 400px, 300px 300px, 500px 500px, 350px 350px, 250px 250px, 450px 450px;
+            animation: floatingTexture 25s ease-in-out infinite, textureMove 15s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes textureMove {
+            0% { background-position: 0% 0%, 100% 100%, 50% 50%, 25% 75%, 75% 25%, 10% 90%; }
+            25% { background-position: 10% 10%, 90% 90%, 60% 40%, 35% 65%, 85% 15%, 20% 80%; }
+            50% { background-position: 20% 20%, 80% 80%, 70% 30%, 45% 55%, 95% 5%, 30% 70%; }
+            75% { background-position: 15% 30%, 85% 70%, 55% 45%, 25% 75%, 75% 25%, 5% 95%; }
+            100% { background-position: 0% 0%, 100% 100%, 50% 50%, 25% 75%, 75% 25%, 10% 90%; }
+        }
+
+        /* Floating geometric shapes */
+        .bg-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float 15s ease-in-out infinite;
+        }
+
+        .shape1 {
+            width: 100px;
+            height: 100px;
+            background: #ffb3d9;
+            border-radius: 50%;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+            box-shadow: 0 0 15px rgba(255, 179, 217, 0.2);
+        }
+
+        .shape2 {
+            width: 140px;
+            height: 140px;
+            background: #ccb3ff;
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            top: 60%;
+            right: 15%;
+            animation-delay: -5s;
+            box-shadow: 0 0 20px rgba(204, 179, 255, 0.2);
+        }
+
+        .shape3 {
+            width: 80px;
+            height: 80px;
+            background: #99d6ff;
+            transform: rotate(45deg);
+            top: 15%;
+            right: 20%;
+            animation-delay: -10s;
+            box-shadow: 0 0 12px rgba(153, 214, 255, 0.2);
+        }
+
+        .shape4 {
+            width: 120px;
+            height: 120px;
+            background: #ffffb3;
+            border-radius: 0 50% 0 50%;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: -2s;
+            box-shadow: 0 0 18px rgba(255, 255, 179, 0.2);
+        }
+
+        /* Additional floating shapes */
+        .shape5 {
+            width: 60px;
+            height: 60px;
+            background: #b3ffb3;
+            border-radius: 20px;
+            top: 40%;
+            left: 5%;
+            animation-delay: -7s;
+            box-shadow: 0 0 10px rgba(179, 255, 179, 0.2);
+        }
+
+        .shape6 {
+            width: 90px;
+            height: 90px;
+            background: #ffccb3;
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            top: 70%;
+            right: 5%;
+            animation-delay: -3s;
+            box-shadow: 0 0 15px rgba(255, 204, 179, 0.2);
+        }
+
+        @keyframes floatingTexture {
+            0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
+            25% { transform: translateX(-10px) translateY(-15px) rotate(1deg); }
+            50% { transform: translateX(5px) translateY(-10px) rotate(-1deg); }
+            75% { transform: translateX(-5px) translateY(5px) rotate(0.5deg); }
+        }
+
+        @keyframes float {
+            0%, 100% { 
+                transform: translateY(0px) rotate(0deg) scale(1); 
+                opacity: 0.15;
+            }
+            25% { 
+                transform: translateY(-30px) rotate(8deg) scale(1.1); 
+                opacity: 0.25;
+            }
+            50% { 
+                transform: translateY(-15px) rotate(-5deg) scale(0.9); 
+                opacity: 0.2;
+            }
+            75% { 
+                transform: translateY(15px) rotate(3deg) scale(1.05); 
+                opacity: 0.3;
+            }
+        }
+
+        /* Pulsing animation for shapes */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.15; }
+            50% { transform: scale(1.2) rotate(180deg); opacity: 0.3; }
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 25px;
+            padding: 45px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 
+                0 15px 50px rgba(0, 0, 0, 0.15),
+                inset 0 2px 0 rgba(255, 255, 255, 0.6),
+                0 0 0 1px rgba(255, 255, 255, 0.2);
+            animation: slideUp 1s ease-out, cardFloat 6s ease-in-out infinite 2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes cardFloat {
+            0%, 100% { transform: translateY(0px) rotateX(0deg); }
+            50% { transform: translateY(-10px) rotateX(2deg); }
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent, 
+                rgba(255, 182, 193, 0.2), 
+                rgba(221, 160, 221, 0.2), 
+                rgba(173, 216, 230, 0.2), 
+                transparent);
+            transform: rotate(-45deg);
+            animation: shimmer 4s linear infinite;
+        }
+
+        /* Add magical sparkles */
+        .login-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.8) 1px, transparent 1px),
+                radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.6) 1px, transparent 1px),
+                radial-gradient(circle at 40% 70%, rgba(255, 255, 255, 0.7) 1px, transparent 1px),
+                radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
+            background-size: 100px 100px, 80px 80px, 120px 120px, 90px 90px;
+            animation: sparkle 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) rotate(-45deg); }
+            100% { transform: translateX(100%) rotate(-45deg); }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-title {
+            font-size: 2.2em;
+            font-weight: 300;
+            color: #6b5b95;
+            margin-bottom: 10px;
+            animation: fadeInDown 1s ease-out 0.2s both;
+        }
+
+        .login-subtitle {
+            color: #8e7cc3;
+            font-size: 0.95em;
+            animation: fadeInDown 1s ease-out 0.4s both;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #7d6aa6;
+            font-weight: 500;
+            font-size: 0.9em;
+            animation: fadeInLeft 1s ease-out 0.6s both;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid rgba(173, 216, 230, 0.3);
+            border-radius: 12px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            color: #6b5b95;
+            transition: all 0.3s ease;
+            animation: fadeInLeft 1s ease-out 0.8s both;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #dda0dd;
+            box-shadow: 0 0 20px rgba(221, 160, 221, 0.3);
+            background: rgba(255, 255, 255, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .form-input::placeholder {
+            color: #b19cd9;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #b19cd9;
+            cursor: pointer;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .password-toggle:hover {
+            color: #8e7cc3;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #ff99cc 0%, #cc99ff 30%, #99ccff 60%, #99ffcc 100%);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 1s ease-out 1s both, buttonGlow 2s ease-in-out infinite 3s;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes buttonGlow {
+            0%, 100% { box-shadow: 0 5px 20px rgba(255, 153, 204, 0.3); }
+            50% { box-shadow: 0 8px 30px rgba(204, 153, 255, 0.5), 0 0 20px rgba(153, 204, 255, 0.3); }
+        }
+
+        .login-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .login-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(221, 160, 221, 0.4);
+        }
+
+        .login-button:hover::before {
+            left: 100%;
+        }
+
+        .login-button:active {
+            transform: translateY(-1px);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .forgot-password {
+            text-align: center;
+            margin-top: 20px;
+            animation: fadeIn 1s ease-out 1.2s both;
+        }
+
+        .forgot-password a {
+            color: #8e7cc3;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: color 0.3s ease;
+        }
+
+        .forgot-password a:hover {
+            color: #dda0dd;
+            text-decoration: underline;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive design */
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 30px 25px;
+                margin: 10px;
+            }
+            
+            .login-title {
+                font-size: 1.8em;
+            }
+        }
+
+        /* Loading animation for button */
+        .login-button.loading {
+            pointer-events: none;
+        }
+
+        .login-button.loading::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            margin: auto;
+            border: 2px solid transparent;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+  <div class="bg-shapes">
+    <div class="shape shape1"></div>
+    <div class="shape shape2"></div>
+    <div class="shape shape3"></div>
+    <div class="shape shape4"></div>
+    <div class="shape shape5"></div>
+    <div class="shape shape6"></div>
+  </div>
+
+  <div class="container">
+    <div class="login-card">
+      <div class="login-header">
+        <h1 class="login-title">Sign Up</h1>
+        <p class="login-subtitle">Create your new account</p>
+      </div>
+
+<form method="POST" action="signup.php">
+        <div class="form-group">
+          <label for="username" class="form-label">Full Name</label>
+          <input 
+            type="text" 
+            id="username" 
+            name="username" 
+            class="form-input" 
+            placeholder="Enter your full name"
+            required 
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="email" class="form-label">Email</label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            class="form-input" 
+            placeholder="Enter your email"
+            required 
+          />
+        </div>
+
+       
+
+        <div class="form-group" style="position: relative;">
+          <label for="password" class="form-label">Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            class="form-input" 
+            placeholder="Create a password"
+            required 
+          />
+          <button type="button" class="password-toggle" onclick="togglePassword()">
+            Show
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword" class="form-label">Confirm Password</label>
+          <input 
+            type="password" 
+            id="confirmPassword" 
+            name="confirmPassword" 
+            class="form-input" 
+            placeholder="Confirm your password"
+            required 
+          />
+        </div>
+
+        <button type="submit" class="login-button" id="signUpBtn">
+          Sign Up
+        </button>
+</form>
+
+      <div class="forgot-password">
+        <a href="login.php" onclick="alert('Redirect to login page')">Already have an account? Log in</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function togglePassword() {
+      const passwordInput = document.getElementById('password');
+      const toggleBtn = document.querySelector('.password-toggle');
+
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleBtn.textContent = 'Hide';
+      } else {
+        passwordInput.type = 'password';
+        toggleBtn.textContent = 'Show';
+      }
+    }
+
+    document.getElementById('signUpForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const fullname = document.getElementById('fullname').value;
+      const email = document.getElementById('email').value;
+      const uid = document.getElementById('uid').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const signUpBtn = document.getElementById('signUpBtn');
+
+      if (password !== confirmPassword) {
+        alert("Passwords do not match!");
+        return;
+      }
+
+      if (fullname && email && uid && password && confirmPassword) {
+        signUpBtn.classList.add('loading');
+        signUpBtn.textContent = '';
+
+        setTimeout(() => {
+          signUpBtn.classList.remove('loading');
+          signUpBtn.textContent = 'Sign Up';
+          alert(`Account created for ${fullname} (${email}) with User ID: ${uid}`);
+        }, 2000);
+      }
+    });
+
+    // Floating label animation on focus
+    document.querySelectorAll('.form-input').forEach(input => {
+      input.addEventListener('focus', function() {
+        this.parentElement.style.transform = 'translateY(-5px)';
+        this.parentElement.style.transition = 'transform 0.3s ease';
+      });
+
+      input.addEventListener('blur', function() {
+        this.parentElement.style.transform = 'translateY(0)';
+      });
+    });
+  </script>
+</body>
+</html>

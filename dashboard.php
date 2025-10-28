@@ -1,0 +1,374 @@
+<?php
+session_start();
+if (!isset($_SESSION['username'])) {
+    header("Location: login.php");
+    exit;
+}
+?>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <style>
+   
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #376d8a 40%, #98edd9 75%, #d96382 90%);
+            position: relative;
+            overflow-x: hidden;
+            
+    }
+
+    
+        /*@keyframes gradientShift {
+            0%, 100% { 
+                background: #9019e5;
+            }
+            25% { 
+                background: #e6f0f7;
+            }
+            50% { 
+                background: #f7f0e6;
+            }
+            75% { 
+                background: #e6f7f0;
+            }
+        }
+            */
+
+       
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(255, 182, 193, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 80% 70%, rgba(173, 216, 230, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 60% 20%, rgba(221, 160, 221, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 40% 80%, rgba(255, 228, 196, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 90% 40%, rgba(144, 238, 144, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 10% 90%, rgba(255, 192, 203, 0.1) 0%, transparent 50%);
+            background-size: 400px 400px, 300px 300px, 500px 500px, 350px 350px, 250px 250px, 450px 450px;
+            animation: floatingTexture 25s ease-in-out infinite, textureMove 15s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes textureMove {
+            0% { background-position: 0% 0%, 100% 100%, 50% 50%, 25% 75%, 75% 25%, 10% 90%; }
+            25% { background-position: 10% 10%, 90% 90%, 60% 40%, 35% 65%, 85% 15%, 20% 80%; }
+            50% { background-position: 20% 20%, 80% 80%, 70% 30%, 45% 55%, 95% 5%, 30% 70%; }
+            75% { background-position: 15% 30%, 85% 70%, 55% 45%, 25% 75%, 75% 25%, 5% 95%; }
+            100% { background-position: 0% 0%, 100% 100%, 50% 50%, 25% 75%, 75% 25%, 10% 90%; }
+        }
+     
+   
+    .navbar {
+      background: linear-gradient(135deg, #D9EDF8 40%, #E4F1EE 50%, #F0D2DA 100%);
+
+      color: #422779;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .navbar .logo {
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .navbar ul {
+      list-style: none;
+      display: flex;
+      gap: 20px;
+    }
+
+    .navbar ul li a {
+      color: #422779;
+      text-decoration: none;
+      font-size: 16px;
+    }
+
+    .navbar .auth-buttons button {
+      background-color: white;
+      color: #422779;
+      border: none;
+      padding: 7px 15px;
+      border-radius: 4px;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+
+    
+    .profile-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      margin-left: 15px;
+    }
+
+    .profile-icon {
+      width: 40px;
+      height: 40px;
+      background-color: white;
+      color: #ccb3ff;
+      border-radius: 50%;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .profile-dropdown {
+      display: none;
+      position: absolute;
+      top: 50px;
+      right: 0;
+      background-color: white;
+      color: #ccb3ff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      width: 250px;
+      z-index: 999;
+    }
+
+    .profile-wrapper:hover .profile-dropdown {
+      display: block;
+    }
+
+    .profile-dropdown p {
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .menu-toggle {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+    }
+
+    .menu-toggle span {
+      height: 3px;
+      width: 25px;
+      background: white;
+      margin: 4px 0;
+    }
+
+    @media (max-width: 768px) {
+      .navbar ul {
+        display: none;
+        flex-direction: column;
+        background: #ccb3ff;
+        position: absolute;
+        top: 60px;
+        left: 0;
+        width: 100%;
+        padding: 10px 0;
+      }
+
+      .navbar ul.active {
+        display: flex;
+      }
+
+      .menu-toggle {
+        display: flex;
+      }
+
+      .auth-buttons {
+        display: none;
+      }
+    }
+
+    .container {
+      width: 90%;
+      margin: 20px auto;
+    }
+
+    h2 {
+      width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #D9EDF8 40%, #E4F1EE 50%, #F0D2DA 100%);
+            border: none;
+            border-radius: 15px;
+            color: #422779;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 1s ease-out 1s both, buttonGlow 2s ease-in-out infinite 3s;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+             box-shadow: 0 5px 8px rgba(0,0,0,0.15);
+    }
+
+    .card, table {
+      background: white;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table, th, td {
+      border: 1px solid #dda0dd;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+
+    .id-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .id-photo {
+      width: 100px;
+      height: 100px;
+      background: #ffffff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #555;
+    }
+
+    
+    .modules {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .module-card {
+      background: #fff;
+      padding: 20px;
+      text-align: center;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+
+    .module-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .module-card h3 {
+      margin-top: 10px;
+      font-size: 18px;
+      color: #422779;
+    }
+  </style>
+</head>
+<body>
+    <nav class="navbar">
+    <div class="logo">Child Health Dashboard</div>
+
+    <div class="menu-toggle" onclick="toggleMenu()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <ul id="nav-links">
+      <li><a href="#">Home</a></li>
+      <li><a href="#">Modules</a></li>
+      <li><a href="#">Reports</a></li>
+      <li><a href="#">Support</a></li>
+    </ul>
+
+    <div style="display: flex; align-items: center;">
+      <div class="auth-buttons">
+        <a href="login.php">
+        <button onclick="alert('Login clicked')">Logout</button>
+        </a>
+        <a href="signup.php">
+        <button onclick="alert('Signup clicked')">Signup</button>
+        </a>
+      </div>
+      <a href="profile.html" class="profile-wrapper" title="View Profile"> 
+        <div class="profile-icon"><?php echo $_SESSION['username'];?></div>
+      
+      
+       
+      </a>
+    </div>
+  </nav>
+
+  
+  <div class="container">
+
+   
+    <div class="modules">
+      <div class="module-card"><h3>Vaccination</h3></div>
+      <div class="module-card"><h3>Appointments</h3></div>
+      <div class="module-card"><h3>Medical History</h3></div>
+      <div class="module-card"><h3>Diet & Nutrition</h3></div>
+      <div class="module-card"><h3>ID Card</h3></div>
+    </div>
+
+   
+    <div class="card">
+      <h2> Virtual ID Card</h2>
+      <BR>
+      <div class="id-card">
+        
+        <div>
+          <p><strong>Name:</strong></p>
+          <p><strong>DOB:</strong></p>
+          <p><strong>Health ID:</strong></p>
+          <p><strong>Blood Group:</strong></p>
+          <p><strong>Parent:</strong></p>
+        </div>
+        <div class="id-photo">Photo</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Vaccination Record</h2>
+      <BR>
+      <table>
+        <tr><th>Vaccine</th><th>Scheduled Date</th><th>Given Date</th><th>Status</th></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Appointments</h2>
+      <BR>
+      <table>
+        <tr><th>Date</th><th>Purpose</th><th>Doctor</th><th>Status</th></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td></tr>
+      </table>
+    </div>
+   </div>
+</body>
+</html>
